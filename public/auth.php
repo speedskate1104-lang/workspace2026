@@ -17,10 +17,29 @@ session_set_cookie_params([
 ]);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    if (!session_start()) {
-        error_log('GOAT Workspace: session_start failed');
+    $sessionError = null;
+
+    set_error_handler(
+        function (int $severity, string $message) use (&$sessionError): bool {
+            $sessionError = $message;
+            return true;
+        }
+    );
+
+    try {
+        $started = session_start();
+    } finally {
+        restore_error_handler();
+    }
+
+    if (!$started) {
+        error_log(
+            'GOAT Workspace session_start failed: ' .
+            ($sessionError ?? 'Unknown error')
+        );
+
         http_response_code(500);
-        exit('Session initialization failed');
+        exit('Session initialization failed. Check server error log.');
     }
 }
 
