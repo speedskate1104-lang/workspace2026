@@ -27,5 +27,12 @@
     "category": "Utilities",
     "icon": "⚙",
     "url": "/tools/utilities/"
-  }
+  },
+  {
+  "name": "BEATGRID",
+  "category": "Music Production",
+  "description": "BPM・拍子・小節数から楽曲の尺を計算するツール",
+  "url": "/beatgrid/",
+  "icon": "♫"
+}
 ]
