@@ -18,55 +18,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!valid_csrf($submitted)) {
         http_response_code(400);
-        header('Content-Type: text/plain; charset=UTF-8');
-
-        $stored = $_SESSION['csrf'] ?? null;
-        $cookieName = session_name();
-
-        echo "CSRF DIAGNOSTIC\n";
-        echo 'Submitted: ' . (is_string($submitted) && $submitted !== '' ? 'YES' : 'NO') . "\n";
-        echo 'Stored: ' . (is_string($stored) && $stored !== '' ? 'YES' : 'NO') . "\n";
-        echo 'Match: NO' . "\n";
-        echo 'Session active: ' . (session_status() === PHP_SESSION_ACTIVE ? 'YES' : 'NO') . "\n";
-        echo 'Session cookie received: ' . (isset($_COOKIE[$cookieName]) ? 'YES' : 'NO') . "\n";
-        echo 'HTTPS: ' . (
-            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-                ? 'YES' : 'NO'
-        ) . "\n";
-
-        exit;
-    }
-
-    $attempts = $_SESSION['login_attempts'] ?? [];
-
-    $attempts = array_values(array_filter(
-        $attempts,
-        fn($time) => is_numeric($time) && $time > $now - 900
-    ));
-
-    if (count($attempts) >= 5) {
-        $error = 'しばらく時間を置いてください。';
+        $error = 'セッションの確認に失敗しました。ページを再読み込みして、もう一度お試しください。';
     } else {
-        $password = (string)($_POST['password'] ?? '');
+        $attempts = $_SESSION['login_attempts'] ?? [];
 
-        $hash = is_readable(AUTH_FILE)
-            ? trim(file_get_contents(AUTH_FILE))
-            : '';
+        $attempts = array_values(array_filter(
+            $attempts,
+            fn($time) => is_numeric($time) && $time > $now - 900
+        ));
 
-        if ($hash !== '' && password_verify($password, $hash)) {
-            session_regenerate_id(true);
+        if (count($attempts) >= 5) {
+            $error = 'しばらく時間を置いてください。';
+        } else {
+            $password = (string)($_POST['password'] ?? '');
 
-            $_SESSION['authenticated'] = true;
-            $_SESSION['login_attempts'] = [];
+            $hash = is_readable(AUTH_FILE)
+                ? trim(file_get_contents(AUTH_FILE))
+                : '';
 
-            header('Location: /');
-            exit;
+            if ($hash !== '' && password_verify($password, $hash)) {
+                session_regenerate_id(true);
+
+                $_SESSION['authenticated'] = true;
+                $_SESSION['login_attempts'] = [];
+
+                header('Location: /');
+                exit;
+            }
+
+            $attempts[] = $now;
+            $_SESSION['login_attempts'] = $attempts;
+
+            $error = 'パスワードが正しくありません。';
         }
-
-        $attempts[] = $now;
-        $_SESSION['login_attempts'] = $attempts;
-
-        $error = 'パスワードが正しくありません。';
     }
 }
 ?>
