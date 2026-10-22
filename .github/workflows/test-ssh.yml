@@ -1,0 +1,42 @@
+name: Test Lolipop SSH
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/test-ssh.yml']
+permissions:
+  contents: read
+jobs:
+  connection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Prepare SSH credentials
+        env:
+          DEPLOY_KEY: ${{ secrets.LOLIPOP_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LOLIPOP_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" || { echo "::error::LOLIPOP_SSH_KEY is missing"; exit 1; }
+          test -n "$KNOWN_HOSTS" || { echo "::error::LOLIPOP_KNOWN_HOSTS is missing"; exit 1; }
+          umask 077
+          mkdir -p "$RUNNER_TEMP/deploy-ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          ssh-keygen -y -P "" -f "$RUNNER_TEMP/deploy-ssh/key" > /dev/null
+          ssh-keygen -F '[ssh.lolipop.jp]:2222' -f "$RUNNER_TEMP/deploy-ssh/known_hosts" > /dev/null
+      - name: Verify SSH and deployment directory (read only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/deploy-ssh/key" \
+            -o UserKnownHostsFile="$RUNNER_TEMP/deploy-ssh/known_hosts" \
+            -o StrictHostKeyChecking=yes -o UpdateHostKeys=no \
+            -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=20 \
+            -p 2222 perma.jp-goat-music@ssh.lolipop.jp \
+            'set -eu; cd /home/users/0/perma.jp-goat-music/web/workspace2026; test -w .; printf "DEPLOY_SSH_OK\n"; pwd; ls -A'
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/deploy-ssh"
