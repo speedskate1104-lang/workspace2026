@@ -1,0 +1,31 @@
+
+[
+  {
+    "name": "Audio Tools",
+    "description": "音声制作・処理ツール",
+    "category": "Audio",
+    "icon": "♫",
+    "url": "/tools/audio/"
+  },
+  {
+    "name": "MIDI Tools",
+    "description": "MIDI変換・同期ユーティリティ",
+    "category": "MIDI",
+    "icon": "⌘",
+    "url": "/tools/midi/"
+  },
+  {
+    "name": "YouTube Analytics",
+    "description": "チャンネル分析ダッシュボード",
+    "category": "Analytics",
+    "icon": "▶",
+    "url": "/tools/youtube/"
+  },
+  {
+    "name": "Utilities",
+    "description": "その他の便利ツール",
+    "category": "Utilities",
+    "icon": "⚙",
+    "url": "/tools/utilities/"
+  }
+]
