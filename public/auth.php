@@ -1,3 +1,4 @@
+
 <?php
 declare(strict_types=1);
 
@@ -16,7 +17,13 @@ session_set_cookie_params([
     'samesite' => 'Lax',
 ]);
 
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    if (!session_start()) {
+        error_log('GOAT Workspace: session_start failed');
+        http_response_code(500);
+        exit('Session initialization failed');
+    }
+}
 
 function authenticated(): bool {
     return ($_SESSION['authenticated'] ?? false) === true;
@@ -33,10 +40,17 @@ function csrf_token(): string {
     if (empty($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
+
     return $_SESSION['csrf'];
 }
 
 function valid_csrf(?string $token): bool {
-    return is_string($token)
-        && hash_equals(csrf_token(), $token);
+    if (!is_string($token)) {
+        return false;
+    }
+
+    $stored = $_SESSION['csrf'] ?? null;
+
+    return is_string($stored)
+        && hash_equals($stored, $token);
 }
