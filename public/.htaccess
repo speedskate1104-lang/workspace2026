@@ -1,6 +1,6 @@
 
 Options -Indexes
-DirectoryIndex index.php
+DirectoryIndex index.php index.html
 
 <FilesMatch "^(\.ht|auth\.php)$">
     Require all denied
