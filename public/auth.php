@@ -1,0 +1,43 @@
+
+<?php
+declare(strict_types=1);
+
+const AUTH_FILE = '/home/users/0/perma.jp-goat-music/workspace-auth/password.hash';
+
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+
+session_name('GOAT_WORKSPACE');
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
+session_start();
+
+function authenticated(): bool {
+    return ($_SESSION['authenticated'] ?? false) === true;
+}
+
+function require_login(): void {
+    if (!authenticated()) {
+        header('Location: /login.php');
+        exit;
+    }
+}
+
+function csrf_token(): string {
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+function valid_csrf(?string $token): bool {
+    return is_string($token)
+        && hash_equals(csrf_token(), $token);
+}
