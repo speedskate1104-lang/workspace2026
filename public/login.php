@@ -2,6 +2,10 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 if (authenticated()) {
     header('Location: /');
     exit;
@@ -11,26 +15,23 @@ $error = '';
 $now = time();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $submitted = $_POST['csrf'] ?? null;
 
-    // CSRF診断（原因特定後に通常処理へ戻す）
-    if (!valid_csrf($_POST['csrf'] ?? null)) {
+    if (!valid_csrf($submitted)) {
         http_response_code(400);
         header('Content-Type: text/plain; charset=UTF-8');
-        header('Cache-Control: no-store');
 
-        $submitted = $_POST['csrf'] ?? null;
         $stored = $_SESSION['csrf'] ?? null;
+        $cookieName = session_name();
 
-        echo 'Submitted: ' .
-            (is_string($submitted) && $submitted !== '' ? 'YES' : 'NO') . "\n";
-
-        echo 'Stored: ' .
-            (is_string($stored) && $stored !== '' ? 'YES' : 'NO') . "\n";
-
-        echo 'Match: ' . (
-            is_string($submitted) &&
-            is_string($stored) &&
-            hash_equals($stored, $submitted)
+        echo "CSRF DIAGNOSTIC\n";
+        echo 'Submitted: ' . (is_string($submitted) && $submitted !== '' ? 'YES' : 'NO') . "\n";
+        echo 'Stored: ' . (is_string($stored) && $stored !== '' ? 'YES' : 'NO') . "\n";
+        echo 'Match: NO' . "\n";
+        echo 'Session active: ' . (session_status() === PHP_SESSION_ACTIVE ? 'YES' : 'NO') . "\n";
+        echo 'Session cookie received: ' . (isset($_COOKIE[$cookieName]) ? 'YES' : 'NO') . "\n";
+        echo 'HTTPS: ' . (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
                 ? 'YES' : 'NO'
         ) . "\n";
 
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $attempts = array_values(array_filter(
         $attempts,
-        fn($time) => $time > $now - 900
+        fn($time) => is_numeric($time) && $time > $now - 900
     ));
 
     if (count($attempts) >= 5) {
@@ -74,15 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login | GOAT Workspace</title>
     <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body class="login-page">
 
-<form class="login-box" method="post">
+<form class="login-box" method="post" action="/login.php" autocomplete="off">
     <div class="eyebrow">GOAT MUSIC PRODUCTION</div>
-
     <h1>Workspace</h1>
     <p>Private Dashboard</p>
 
