@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111318">
+<meta name="description" content="BPM、拍子、小節数から楽曲の尺を計算する無料ツール。">
+<title>BEATGRID | Music Timing Calculator</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./app.js" defer></script>
+</head>
+<body>
+<main class="container">
+  <header class="header">
+    <div class="brand">BEAT<span>GRID</span></div>
+    <p>Music Timing Calculator</p>
+  </header>
+
+  <section class="panel">
+    <h1>楽曲の尺を計算</h1>
+    <p class="description">BPM・拍子・小節数から演奏時間を計算します。</p>
+
+    <div class="fields">
+      <label>BPM
+        <input id="bpm" type="number" min="1" max="999" step="0.01" value="160">
+      </label>
+
+      <label>拍子
+        <select id="signature">
+          <option value="4/4">4/4</option>
+          <option value="3/4">3/4</option>
+          <option value="5/4">5/4</option>
+          <option value="6/4">6/4</option>
+          <option value="7/4">7/4</option>
+          <option value="6/8">6/8</option>
+          <option value="9/8">9/8</option>
+          <option value="12/8">12/8</option>
+        </select>
+      </label>
+
+      <label>小節数
+        <input id="bars" type="number" min="0" max="100000" step="0.25" value="64">
+      </label>
+
+      <label>開始オフセット（秒）
+        <input id="offset" type="number" min="0" max="86400" step="0.01" value="0">
+      </label>
+    </div>
+
+    <div class="result">
+      <span>演奏時間</span>
+      <strong id="duration">00:00.00</strong>
+      <small id="seconds">0.00 秒</small>
+    </div>
+
+    <div class="result secondary">
+      <span>終了位置（オフセット込み）</span>
+      <strong id="endTime">00:00.00</strong>
+    </div>
+
+    <button id="copy" type="button">計算結果をコピー</button>
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="panel">
+    <h2>目標尺から逆算</h2>
+    <p class="description">指定した演奏時間に必要な小節数を求めます。</p>
+
+    <label>目標演奏時間（秒）
+      <input id="target" type="number" min="0" max="86400" step="0.01" value="180">
+    </label>
+
+    <div class="result">
+      <span>必要小節数</span>
+      <strong id="requiredBars">0.00</strong>
+      <small>小節</small>
+    </div>
+  </section>
+
+  <footer>
+    <p>BEATGRID — GOAT MUSIC PRODUCTION</p>
+    <p>計算はブラウザ内で実行されます。</p>
+  </footer>
+</main>
+</body>
+</html>
