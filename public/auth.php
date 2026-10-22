@@ -1,7 +1,10 @@
+
 <?php
 declare(strict_types=1);
 
 const AUTH_FILE = '/home/users/0/perma.jp-goat-music/workspace-auth/password.hash';
+
+const SESSION_ERROR_LOG = '/home/users/0/perma.jp-goat-music/workspace-auth/session-error.log';
 
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
@@ -33,9 +36,15 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     }
 
     if (!$started) {
+        $message = date('c')
+            . ' GOAT Workspace session_start failed: '
+            . ($sessionError ?? 'Unknown error')
+            . PHP_EOL;
+
         error_log(
-            'GOAT Workspace session_start failed: ' .
-            ($sessionError ?? 'Unknown error')
+            $message,
+            3,
+            SESSION_ERROR_LOG
         );
 
         http_response_code(500);
