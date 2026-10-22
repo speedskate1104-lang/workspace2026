@@ -1,0 +1,75 @@
+name: Deploy Workspace
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workspace-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.LOLIPOP_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LOLIPOP_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY"
+          test -n "$KNOWN_HOSTS"
+          umask 077
+          mkdir -p "$RUNNER_TEMP/deploy-ssh"
+          printf '%s' "$DEPLOY_KEY" | base64 --decode > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          ssh-keygen -y -P "" -f "$RUNNER_TEMP/deploy-ssh/key" > /dev/null
+          ssh-keygen -F '[ssh.lolipop.jp]:2222' -f "$RUNNER_TEMP/deploy-ssh/known_hosts" > /dev/null
+
+      - name: Upload public files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f public/index.html
+
+          SSH_OPTIONS=(
+            -i "$RUNNER_TEMP/deploy-ssh/key"
+            -o "UserKnownHostsFile=$RUNNER_TEMP/deploy-ssh/known_hosts"
+            -o StrictHostKeyChecking=yes
+            -o UpdateHostKeys=no
+            -o IdentitiesOnly=yes
+            -o BatchMode=yes
+            -o ConnectTimeout=20
+          )
+
+          DEST="/home/users/0/perma.jp-goat-music/web/workspace2026"
+          HOST="perma.jp-goat-music@ssh.lolipop.jp"
+
+          ssh "${SSH_OPTIONS[@]}" -p 2222 "$HOST" \
+            "test -d '$DEST' && test -w '$DEST'"
+
+          scp -O "${SSH_OPTIONS[@]}" -P 2222 -r \
+            public/. "$HOST:$DEST/"
+
+          echo "Upload completed."
+
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/deploy-ssh"
