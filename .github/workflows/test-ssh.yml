@@ -22,7 +22,7 @@ jobs:
           test -n "$KNOWN_HOSTS" || { echo "::error::LOLIPOP_KNOWN_HOSTS is missing"; exit 1; }
           umask 077
           mkdir -p "$RUNNER_TEMP/deploy-ssh"
-          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s' "$DEPLOY_KEY" | base64 --decode > "$RUNNER_TEMP/deploy-ssh/key"
           printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
           ssh-keygen -y -P "" -f "$RUNNER_TEMP/deploy-ssh/key" > /dev/null
           ssh-keygen -F '[ssh.lolipop.jp]:2222' -f "$RUNNER_TEMP/deploy-ssh/known_hosts" > /dev/null
