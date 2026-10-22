@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Studio OneのSMF MIDIをブラウザ内で検証し、Pro Tools向けに整理してダウンロード。">
+<title>MIDI Tools | GOAT Workspace</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./midi.js" defer></script>
+<script src="./app.js" defer></script>
+</head>
+<body>
+<main>
+  <header><a href="/">← GOAT WORKSPACE</a><p class="eyebrow">MUSIC PRODUCTION / MIDI TOOLS</p><h1>MIDIを、次のセッションへ。</h1><p>Studio One 6 → Pro Tools 互換変換</p></header>
+  <section class="panel" aria-labelledby="upload-heading">
+    <h2 id="upload-heading">SMF MIDIを選択</h2>
+    <p>ファイルを選ぶと解析・変換します。処理はこのブラウザ内で完結し、ファイルをサーバーへ送信しません。</p>
+    <div id="dropzone"><label for="file">.mid / .midi を選択、またはここにドロップ</label><input id="file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi"><small>Format 0 / 1 · 最大16 MiB · 500,000イベント</small></div>
+    <p id="status" role="status" aria-live="polite">ファイルを待っています。</p>
+    <button id="download" type="button" disabled>変換済みMIDIをダウンロード</button>
+  </section>
+  <section id="results" class="panel" hidden aria-labelledby="results-heading">
+    <h2 id="results-heading">検証結果</h2><p id="filename"></p><dl id="summary"></dl>
+    <p class="success">出力を再解析し、各イベントの時刻・データと元トラックの終端位置が一致することを検証しました。</p>
+    <h3>確認事項</h3><ul id="warnings"></ul>
+    <details><summary>テンポ・拍子・マーカーを表示（先頭200件）</summary><div class="table-wrap"><table><thead><tr><th>元トラック</th><th>位置（tick）</th><th>種別</th><th>内容</th></tr></thead><tbody id="events"></tbody></table></div><p>テキストはUTF-8として表示します。元の文字コードとバイト列は変更しません。</p></details>
+  </section>
+  <section class="panel">
+    <h2>Pro Toolsへの読み込み</h2>
+    <ol><li>Studio One 6からStandard MIDI File（.mid）を書き出します。</li><li>ここで変換し、ダウンロードします。</li><li>Pro Toolsの「File → Import → MIDI」で読み込み、テンポマップの取り込みを有効にしてください。既存セッションのテンポ・拍子が置き換わるため、取り込み先を確認してください。</li><li>マーカーの取り込み設定があるバージョンでは有効にし、開始位置・テンポ・拍子・ノートを確認します。</li></ol>
+    <p>Format 1に統一し、テンポ・拍子・調号・SMPTEオフセット・マーカー・キューポイントを先頭トラックへ集約します。ノート、CC、プログラムチェンジ、ピッチベンド、SysEx、その他のメタ情報は元トラックに保持。音色・プラグイン・音声は変換対象外です。</p>
+    <p>Pro Tools実機での読み込み成功を保証するものではありません。元MIDIは保管してください。Format 2、RMID、壊れたファイルは受け付けません。</p>
+    <p><a href="https://midi.org/standard-midi-files-specification" target="_blank" rel="noopener noreferrer">SMF仕様</a> · <a href="https://resources.avid.com/SupportFiles/PT/Pro_Tools_Reference_Guide_2020.11.pdf" target="_blank" rel="noopener noreferrer">Pro Toolsリファレンス</a></p>
+  </section>
+  <footer>GOAT MUSIC PRODUCTION · 外部ライブラリ・ファイル送信なし</footer>
+  <noscript>このツールを利用するにはJavaScriptを有効にしてください。</noscript>
+</main>
+</body>
+</html>
